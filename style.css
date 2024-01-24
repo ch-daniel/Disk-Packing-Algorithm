@@ -1,0 +1,32 @@
+body {
+	margin-top: 30px;
+}
+.diskStats {
+	display: flex;
+	flex-direction: row;
+	
+	border: 1px black solid;
+	justify-content: space-between;
+	width: 1200px;
+	margin: 0 auto;
+}
+
+.diskStatWrapper {
+	display: flex;
+	flex-direction: row;
+	padding: 20px 10px;
+}
+
+.diskStatWrapper:not(:last-child) {
+	border-right: 1px black dotted;
+}
+
+.diskStatWrapper:not(:first-child) {
+	border-left: 1px black dotted;
+}
+
+#sheetWrapper {
+	margin: 60px auto;
+	width: 1000px;
+	height: 1000px;
+}
