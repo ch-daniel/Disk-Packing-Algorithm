@@ -9,7 +9,7 @@ function load_disks(j) {
     let newDiv = document.createElement("div");
     newDiv.classList.add("diskStatWrapper");
     let childDiv = document.createElement("div");
-    let node = j[i].size + " mm Size, ";
+    let node = (j[i].size / 2) + " mm Size, ";
     childDiv.innerHTML += node;
     newDiv.appendChild(childDiv);
 
@@ -28,11 +28,12 @@ function load_disks(j) {
   console.log(j);
 }
 
-function findNewPoint(x, y, angle, distance) {
+function findNewPoint(x, y, angle, distance, prev_disk) {
   var result = {};
+  console.log("distance = " + distance);
 
-  result.x = Math.round(Math.cos(angle * Math.PI / 180) * distance + x);
-  result.y = Math.round(Math.sin(angle * Math.PI / 180) * distance + y);
+  result.x = prev_disk.x + Math.round(Math.cos(angle * Math.PI / 180) * distance + x);
+  result.y = prev_disk.y + Math.round(Math.sin(angle * Math.PI / 180) * distance + y);
 
   return result;
 }
@@ -59,7 +60,8 @@ function calculate_disks(disks) {
       disks_sorted[i].y = disks_sorted[i].diameter / 2 + 1;
     } else {
       for (let angle = 0; angle < 360; angle++) {
-        let newPoint = findNewPoint(disks_sorted[i].x, disks_sorted[i].y, angle, disks_sorted[i].diameter / 2 + disks_sorted[i-1].diameter / 2 + 2)
+        
+        let newPoint = findNewPoint(disks_sorted[i].x, disks_sorted[i].y, angle, (disks_sorted[i].diameter / 2) + (disks_sorted[i-1].diameter / 2) + 2, disks_sorted[i-1])
         if ((newPoint.x > (0 + disks_sorted[i].diameter/2 + 2)) && (newPoint.x < (1000 - disks_sorted[i].diameter/2 - 2)) && (newPoint.y > (0 + disks_sorted[i].diameter/2 + 2)) && (newPoint.y < (1000 - disks_sorted[i].diameter/2 - 2))) {
           disks_sorted[i].x = newPoint.x;
           disks_sorted[i].y = newPoint.y;
@@ -67,6 +69,7 @@ function calculate_disks(disks) {
         }
         
         console.log(disks_sorted);
+
       }
     }
   }
@@ -84,7 +87,7 @@ function draw_circle(disk) {
   ctx.stroke(); 
   
   ctx.font = "16px Arial";
-  ctx.fillText(disk.radius + " mm", disk.x - 25, disk.y + 4); 
+  ctx.fillText(disk.diameter + " mm", disk.x - 25, disk.y + 4); 
 }
 
 function draw_disks(disks) {
