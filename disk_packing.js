@@ -28,18 +28,66 @@ function load_disks(j) {
   console.log(j);
 }
 
+function findNewPoint(x, y, angle, distance) {
+  var result = {};
+
+  result.x = Math.round(Math.cos(angle * Math.PI / 180) * distance + x);
+  result.y = Math.round(Math.sin(angle * Math.PI / 180) * distance + y);
+
+  return result;
+}
+
+function calculate_disks(disks) {
+  
+  let disks_sorted = [];
+
+  for (let i = 0; i < disks.length; i++) {
+    for (let n = 0; n < disks[i].quantity; n++) {
+      let disk = new Object();
+      disk.diameter = disks[i].size;
+      disk.x = 0;
+      disk.y = 0;
+      disks_sorted.push(disk);
+    };
+  };
+
+  for (let i = 0; i < disks_sorted.length; i++) {
+    
+    // Place first disk in the top left corner
+    if (i == 0) {
+      disks_sorted[i].x = disks_sorted[i].diameter / 2 + 1;
+      disks_sorted[i].y = disks_sorted[i].diameter / 2 + 1;
+    } else {
+      for (let angle = 0; angle < 360; angle++) {
+        let newPoint = findNewPoint(disks_sorted[i].x, disks_sorted[i].y, angle, disks_sorted[i].diameter / 2 + disks_sorted[i-1].diameter / 2 + 2)
+        if ((newPoint.x > (0 + disks_sorted[i].diameter/2 + 2)) && (newPoint.x < (1000 - disks_sorted[i].diameter/2 - 2)) && (newPoint.y > (0 + disks_sorted[i].diameter/2 + 2)) && (newPoint.y < (1000 - disks_sorted[i].diameter/2 - 2))) {
+          disks_sorted[i].x = newPoint.x;
+          disks_sorted[i].y = newPoint.y;
+          break;
+        }
+        
+        console.log(disks_sorted);
+      }
+    }
+  }
+  console.log(disks_sorted);
+  return disks_sorted;
+
+}
+
 function draw_circle(disk) {
+  
+  const canvas = document.getElementById("sheet");
+  const ctx = canvas.getContext("2d");
   ctx.beginPath();
-  let x = getRandomInt(1000);
-  let y = getRandomInt(1000);
-  ctx.arc(x, y, disk.size / 2, 0, 2 * Math.PI);
+  ctx.arc(disk.x, disk.y, disk.diameter / 2, 0, 2 * Math.PI);
   ctx.stroke(); 
   
   ctx.font = "16px Arial";
-  ctx.fillText(disk.size + " mm", x - 25, y + 4); 
+  ctx.fillText(disk.radius + " mm", disk.x - 25, disk.y + 4); 
 }
 
-function draw_disks(j) {
+function draw_disks(disks) {
   const canvas = document.getElementById("sheet");
   const ctx = canvas.getContext("2d");
 
@@ -51,12 +99,9 @@ function draw_disks(j) {
   ctx.lineTo(0,0);
   ctx.stroke();
 
-  for (let i = 0; i < j.length; i++) {
-    for (let n = 0; n < j[i].quantity; n++) {
+  for (let i = 0; i < disks.length; i++) {
+    draw_circle(disks[i]);
 
-      draw_circle(j[i]);
-
-    };
   };
 
   
@@ -67,7 +112,8 @@ fetch('disks.json')
   .then(jsonResponse => {
     const disks = jsonResponse; 
     load_disks(disks);
-    draw_disks(disks);
+    draw_disks(calculate_disks(disks));
+
   } )     
    // outputs a javascript object from the parsed json
 
