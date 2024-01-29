@@ -9,7 +9,7 @@ function load_disks(j) {
     let newDiv = document.createElement("div");
     newDiv.classList.add("diskStatWrapper");
     let childDiv = document.createElement("div");
-    let node = (j[i].size / 2) + " mm Size, ";
+    let node = (j[i].size) + " mm Size, ";
     childDiv.innerHTML += node;
     newDiv.appendChild(childDiv);
 
@@ -28,14 +28,84 @@ function load_disks(j) {
   console.log(j);
 }
 
-function findNewPoint(x, y, angle, distance, prev_disk) {
-  var result = {};
-  console.log("distance = " + distance);
+function isCollision(newCircle, disks_sorted) {
+  
+  let canvasWidth = 1000;
+  let canvasHeight = 1000;
+  for (let i = 0; i < disks_sorted.length; i++) {
+    const existingCircle = disks_sorted[i];
 
-  result.x = prev_disk.x + Math.round(Math.cos(angle * Math.PI / 180) * distance + x);
-  result.y = prev_disk.y + Math.round(Math.sin(angle * Math.PI / 180) * distance + y);
+    if (existingCircle.x == 0 && existingCircle.y == 0) {
+      return false;
+    }
 
-  return result;
+    // Calculate the distance between the centers of the circles
+    const distance = Math.sqrt(
+      Math.pow(newCircle.x - existingCircle.x, 2) + Math.pow(newCircle.y - existingCircle.y, 2)
+    );
+
+    // Check if there is a collision (overlap of diameters)
+    if (distance < (newCircle.diameter / 2 + existingCircle.diameter / 2) + 2) {
+      return true; // Collision detected
+    }
+    if (
+      newCircle.x - newCircle.diameter / 2 < 0 ||
+      newCircle.x + newCircle.diameter / 2 > canvasWidth ||
+      newCircle.y - newCircle.diameter / 2 < 0 ||
+      newCircle.y + newCircle.diameter / 2 > canvasHeight
+    ) {
+      return true; // Out of bounds
+    }
+  }
+}
+
+function findNewPoint(disks_sorted, i) {
+  for (let referenceDisk = 0; referenceDisk < disks_sorted.length; referenceDisk++) {
+    for (let angle = -90; angle < 270; angle++) {
+      
+      let result = new Object();
+
+      let radians = (angle * Math.PI) / 180;
+
+      let distance = disks_sorted[i].diameter / 2 + disks_sorted[referenceDisk].diameter / 2 + 2;
+    
+      if (angle >= -90 && angle < 0 ){
+        //Quadrant 1
+        
+        result.x = disks_sorted[referenceDisk].x + Math.cos(radians) * distance;
+        result.y = disks_sorted[referenceDisk].y - Math.sin(radians) * distance;
+        console.log("I got here = " + distance);
+      } else if (angle >= 0 && angle < 90 ){
+        //Quadrant 2
+        result.x = disks_sorted[referenceDisk].x + Math.cos(radians) * distance;
+        result.y = disks_sorted[referenceDisk].y + Math.sin(radians) * distance;
+      } else if (angle >= 90 && angle < 180 ){
+        //Quadrant 3
+        result.x = disks_sorted[referenceDisk].x - Math.cos(radians) * distance;
+        result.y = disks_sorted[referenceDisk].y + Math.sin(radians) * distance;
+      } else {
+        //Quadrant 4
+        result.x = disks_sorted[referenceDisk].x - Math.cos(radians) * distance;
+        result.y = disks_sorted[referenceDisk].y - Math.sin(radians) * distance;
+      }
+
+      result.diameter = disks_sorted[i].diameter;
+      console.log("I am resut = " + angle);
+
+      if (!isCollision(result, disks_sorted)) {
+        return result;
+      } 
+      
+
+    }
+  }
+}
+
+function sortArrayAscending(inputArray) {
+  // Sorting array in ascending order
+  const sortedArray = inputArray.slice().sort((a, b) => a.diameter - b.diameter);
+
+  return sortedArray;
 }
 
 function calculate_disks(disks) {
@@ -49,8 +119,12 @@ function calculate_disks(disks) {
       disk.x = 0;
       disk.y = 0;
       disks_sorted.push(disk);
+      disks_sorted = sortArrayAscending(disks_sorted);
+      disks_sorted.reverse();
     };
   };
+
+  
 
   for (let i = 0; i < disks_sorted.length; i++) {
     
@@ -59,21 +133,13 @@ function calculate_disks(disks) {
       disks_sorted[i].x = disks_sorted[i].diameter / 2 + 1;
       disks_sorted[i].y = disks_sorted[i].diameter / 2 + 1;
     } else {
-      for (let angle = 0; angle < 360; angle++) {
-        
-        let newPoint = findNewPoint(disks_sorted[i].x, disks_sorted[i].y, angle, (disks_sorted[i].diameter / 2) + (disks_sorted[i-1].diameter / 2) + 2, disks_sorted[i-1])
-        if ((newPoint.x > (0 + disks_sorted[i].diameter/2 + 2)) && (newPoint.x < (1000 - disks_sorted[i].diameter/2 - 2)) && (newPoint.y > (0 + disks_sorted[i].diameter/2 + 2)) && (newPoint.y < (1000 - disks_sorted[i].diameter/2 - 2))) {
-          disks_sorted[i].x = newPoint.x;
-          disks_sorted[i].y = newPoint.y;
-          break;
-        }
-        
-        console.log(disks_sorted);
-
-      }
+      let newPoint = findNewPoint(disks_sorted, i);
+      disks_sorted[i].x = newPoint.x;
+      disks_sorted[i].y = newPoint.y;
+      
     }
+    
   }
-  console.log(disks_sorted);
   return disks_sorted;
 
 }
